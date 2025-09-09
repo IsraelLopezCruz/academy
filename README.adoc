@@ -1,0 +1,60 @@
+= REPLACE_WITH_SERVICE_NAME
+:toc:
+
+== Getting Started
+
+=== Replace application name
+
+First, in  `boostrap.properties` file, change the microservice application name default value to the final project name.
+
+	spring.application.name=my_application
+	
+	
+=== Externalized configuration (Config Server)
+
+Applications sometimes store config as constants in the code and this is a violation of best practices, which requires *strict separation of config from code*.
+
+This microservice must read all configurations from an external Spring Cloud Config Server. Take a look at Config Server project for additional details.
+
+Make sure that the `config-server` service is running and save its endpoint (if running locally, it show be http://localhost:8888)
+
+
+=== Run the application with its correct profile (dev, qa, prod)
+
+Use a spring profile to start the application. The profile `-Dspring.profiles.active=dev` will read properties files from config server/github repo.
+
+	mvn spring-boot:run -Dspring.profiles.active=dev -Dspring.cloud.config.uri=http://ps-config-server:{CONFIG_SERVER_PASSWORD}@localhost:8888
+
+…​as an alternative, you can run the microservice as a docker container
+
+	docker build -t examples/my_application .
+	
+	docker run --env spring.profiles.active=dev,docker --env spring.cloud.config.uri=http://ps-config-server:{CONFIG_SERVER_PASSWORD}@host.docker.internal:8888 -p 8080:8080 examples/my_application
+
+
+=== Splunk Integration
+
+
+Create a Splunk https://docs.splunk.com/Documentation/Splunk/latest/Data/UsetheHTTPEventCollector[HTTP Event Collector]
+
+In the github/config-repo create a my_application-dev.yml file with
+
+	splunk:
+	  url: https://inputs.XXXXX.splunkcloud.com:8088 #the Splunk account identifier
+	  token: XXXXXXXXX-XXXX-XXX-XXX-XXXXXXXXX #the HTTP Event Collector Token
+	  batch_size_count: 1 
+
+=== New Relic Integration
+
+Run 
+
+	docker run -p 8080:8080 \
+	--env "JAVA_TOOL_OPTIONS=-javaagent:/dd-java-agent.jar  -Ddd.service={my_application}" \
+	--env spring.profiles.active=dev \
+  --env spring.cloud.config.uri="http://ps-config-server:{CONFIG_SERVER_PASSWORD}@host.docker.internal:8888" \
+	{docker_image_name}
+
+
+=== Test application
+
+	curl -s localhost:8080/actuator/health | pjson	

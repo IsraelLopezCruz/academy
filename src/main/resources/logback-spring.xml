@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+	<property name="CONSOLE_LOG_PATTERN"
+			  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-without_a_trace}] [%X{userId:-anonymous}] [%X{clientId:-without_client_id}] %-5level %logger{40} - %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}" />
+
+	<property name="SPLUNK_LOG_PATTERN"
+			  value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %m${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}" />
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern>
+			<charset>utf8</charset>
+		</encoder>
+	</appender>
+
+	<springProperty scope="context" name="url" source="splunk.url" defaultValue="https://inputs.XXXX.splunkcloud.com:8088" />
+	<springProperty scope="context" name="token" source="splunk.token" />
+	<springProperty scope="context" name="batch_size_count" source="splunk.batch_size_count"/>
+	<springProperty scope="context" name="application_name" source="spring.application.name"/>
+	<springProperty scope="context" name="environment" source="spring.profiles.active" defaultValue="dev"/>
+
+	<appender name="SPLUNK"	class="com.splunk.logging.HttpEventCollectorLogbackAppender">
+		<url>${url}</url>
+		<host>${HOSTNAME}</host>
+		<token>${token}</token>
+		<source>${application_name}</source>
+		<sourcetype>${environment}</sourcetype>
+		<disableCertificateValidation>true</disableCertificateValidation>
+		<batch_size_count>${batch_size_count}</batch_size_count>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>${SPLUNK_LOG_PATTERN}</pattern>
+		</layout>
+	</appender>
+
+	<root>
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="SPLUNK" />
+	</root>
+
+</configuration>

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.application_name }}-{{ .Values.enviroment_name }}"
+  namespace: "{{ .Values.namespace_name }}"
+spec:
+  selector:
+    matchLabels:
+      name: "{{ .Values.application_name }}-{{ .Values.enviroment_name }}"
+  template:
+    metadata:
+      labels:
+        name: "{{ .Values.application_name }}-{{ .Values.enviroment_name }}"
+    spec:
+      containers:
+        - name: {{ .Values.application_name }}
+          image: {{ .Values.image }}
+          ports:
+            - containerPort: {{ .Values.container_port }}
+          resources:
+            limits:
+              memory: "2Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.container_port }}
+              path: /actuator/health
+            initialDelaySeconds: 120
+            timeoutSeconds: 20
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.container_port }}
+              path: /actuator/health
+            initialDelaySeconds: 120
+            timeoutSeconds: 20
+          env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: {{ .Values.enviroment_name }}
+          - name: SPRING_CLOUD_CONFIG_URI
+            value: "http://{{ .Values.config_server_username }}:{{ .Values.config_server_password }}@{{ .Values.config_server_url }}"
+          - name: JAVA_TOOL_OPTIONS
+            value: {{ .Values.JAVA_TOOL_OPTIONS }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ .Values.aws_access_key }}  
+          - name: AWS_SECRET_ACCESS_KEY
+            value: {{ .Values.aws_secret_key }}
+          - name: AWS_REGION
+            value: {{ .Values.aws_region }}

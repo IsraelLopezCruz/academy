@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ .Values.application_name }}-{{ .Values.enviroment_name }}"
+  namespace: "{{ .Values.namespace_name }}"
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+spec:
+  rules:
+    - host: {{ .Values.enviroment_name }}.priceshoes.digital
+      http:
+        paths:
+            - path: /{{ .Values.application_name }}(/|$)(.*)
+              pathType: Prefix
+              backend:
+                service:
+                  name: "{{ .Values.application_name }}-{{ .Values.enviroment_name }}"
+                  port:
+                    number: 80

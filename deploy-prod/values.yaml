@@ -1,0 +1,13 @@
+# Default values for mychart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+application_name: hello
+enviroment_name : dev
+image : image
+container_port: 8080
+JAVA_TOOL_OPTIONS: ""
+
+aws_access_key: ""
+aws_secret_key: ""
+aws_region: ""
