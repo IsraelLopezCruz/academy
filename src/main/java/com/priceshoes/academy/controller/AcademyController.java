@@ -54,5 +54,9 @@ public class AcademyController {
     public long getTotalCurtomer(){
         return academyService.getTotalSocias();
     }
+    @GetMapping("/total/{courseId}")
+    public long getTotalCurtomer(@NonNull @PathVariable Long courseId){
+        return academyService.getTotalCourses(courseId);
+    }
 
 }
