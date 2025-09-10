@@ -318,4 +318,10 @@ public class AcademyService {
     })
     @Transactional
     public void deleteCache(){}
+
+    public long getTotalSocias(){
+        long totalSocias = customerCourseRepository.countByStatus(CustomerCourse.CustomerCourseStatus.FINISH);
+        return totalSocias;
+    }
+
 }

@@ -22,4 +22,5 @@ public interface CustomerCourseRepository extends JpaRepository<CustomerCourse, 
                     "AND c.course.id = :courseId "
     )
     Optional<CustomerCourse> findByCustomerIdAndCourseId(@Param("customerId") String customerId, @Param("courseId") Long courseId);
+    long countByStatus(CustomerCourse.CustomerCourseStatus status);
 }
