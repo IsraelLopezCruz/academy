@@ -50,4 +50,9 @@ public class AcademyController {
         return ResponseEntity.accepted().build();
     }
 
+    @GetMapping("/total/customer")
+    public long getTotalCurtomer(){
+        return academyService.getTotalSocias();
+    }
+
 }
