@@ -323,5 +323,9 @@ public class AcademyService {
         long totalSocias = customerCourseRepository.countByStatus(CustomerCourse.CustomerCourseStatus.FINISH);
         return totalSocias;
     }
+    public long getTotalCourses(Long courseId ){
+        long totalPersonas = customerCourseRepository.countByStatusAndCourseId(CustomerCourse.CustomerCourseStatus.FINISH, courseId);
+        return totalPersonas;
+    }
 
 }
