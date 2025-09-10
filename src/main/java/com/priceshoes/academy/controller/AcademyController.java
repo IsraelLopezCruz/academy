@@ -59,7 +59,7 @@ public class AcademyController {
     public long getTotalCurtomer(@NonNull @PathVariable Long courseId){
         return academyService.getTotalCourses(courseId);
     }
-    @GetMapping("/list/{customerId}")
+    @GetMapping("/course/complete/{customerId}")
     public List<CustomerCompliedResponse> getListCourse(@PathVariable String  customerId){
         return academyService.getListCourses(customerId);
     }
