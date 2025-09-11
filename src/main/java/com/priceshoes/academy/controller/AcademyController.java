@@ -2,6 +2,7 @@ package com.priceshoes.academy.controller;
 
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import datadog.trace.api.Trace;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.OAuthFlow;
@@ -58,6 +59,7 @@ public class AcademyController {
     public long getTotalCurtomer(@NonNull @PathVariable Long courseId){
         return academyService.getTotalCourses(courseId);
     }
+
     @GetMapping("/chapter/finished/{courseId}/{customerId}")
     public List<ChapterStatusDTO> getChapterFinishedStatus(@NonNull @PathVariable Long courseId, @NonNull @PathVariable String customerId) {
         return academyService.getChapterStatuses(courseId,customerId);

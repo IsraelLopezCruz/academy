@@ -6,6 +6,7 @@ import com.priceshoes.academy.exception.CourseNotFoundException;
 import com.priceshoes.academy.exception.ChapterNotFoundException;
 import com.priceshoes.academy.repository.*;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -328,6 +329,18 @@ public class AcademyService {
         long totalPersonas = customerCourseRepository.countByStatusAndCourseId(CustomerCourse.CustomerCourseStatus.FINISH, courseId);
         return totalPersonas;
     }
+    public List<CustomerCompliedResponse> getListCourses(String customerId){
+        List<CustomerCourse> customerComplete = customerCourseRepository.findByStatusAndCustomerId(CustomerCourse.CustomerCourseStatus.FINISH, customerId);
+        List<CustomerCompliedResponse> compliedResponse = new ArrayList<>();
+        for (CustomerCourse customerCourse : customerComplete) {
+            Course course = customerCourse.getCourse();
+            compliedResponse.add(new CustomerCompliedResponse(course.getId(),
+                    course.getTitle(),course.getDescription(), course.getStatus(),course.getCreatedAt()));
+
+        }
+        return compliedResponse;
+    }
+
 
     public List<ChapterStatusDTO> getChapterStatuses(Long courseId, String customerId ){
         List<CustomerCourseChapter> chapter = customerCourseChapterRepository.findByStatusAndChapter_Course_id_AndCustomerCourse_CustomerId(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH,courseId,customerId);
