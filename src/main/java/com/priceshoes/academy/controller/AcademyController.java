@@ -58,9 +58,8 @@ public class AcademyController {
     public long getTotalCurtomer(@NonNull @PathVariable Long courseId){
         return academyService.getTotalCourses(courseId);
     }
-    @GetMapping("/finished/chapter/{courseId}/{customerId}")
-    public List<ChapterStatusDTO> getFinishedChapterStatus(@NonNull @PathVariable Long courseId, @NonNull @PathVariable String customerId) {
+    @GetMapping("/chapter/finished/{courseId}/{customerId}")
+    public List<ChapterStatusDTO> getChapterFinishedStatus(@NonNull @PathVariable Long courseId, @NonNull @PathVariable String customerId) {
         return academyService.getChapterStatuses(courseId,customerId);
     }
-
 }

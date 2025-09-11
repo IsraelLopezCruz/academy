@@ -343,10 +343,4 @@ public class AcademyService {
         }
         return chapterStatuses;
     }
-
-
-
-
-
-
 }

@@ -12,5 +12,4 @@ public class ChapterStatusDTO {
         String title;
         String Status;
         String customerId;
-
 }
