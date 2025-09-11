@@ -28,6 +28,7 @@ public class AcademyService {
     private final ChapterRepository chapterRepository;
     private final CategoryRepository categoryRepository;
     private final CourseCategoryRepository courseCategoryRepository;
+    private final CustomerCourseChapterRepository customerCourseChapterRepository;
 
     private final Courses2CoursesForCustomerDTO courses2CoursesForCustomerDTO;
     private final Course2CourseForCustomerDTO course2CourseForCustomerDTO;
@@ -327,5 +328,25 @@ public class AcademyService {
         long totalPersonas = customerCourseRepository.countByStatusAndCourseId(CustomerCourse.CustomerCourseStatus.FINISH, courseId);
         return totalPersonas;
     }
+
+    public List<ChapterStatusDTO> getChapterStatuses(Long courseId, String customerId ){
+        List<CustomerCourseChapter> chapter = customerCourseChapterRepository.findByStatusAndChapter_Course_id_AndCustomerCourse_CustomerId(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH,courseId,customerId);
+        List<ChapterStatusDTO> chapterStatuses = new ArrayList<>();
+        for(CustomerCourseChapter chapter1 : chapter){
+            ChapterStatusDTO dto = new ChapterStatusDTO();
+            dto.setId(chapter1.getChapter().getId());
+            dto.setStatus(chapter1.getStatus().name());
+            dto.setTitle(chapter1.getChapter().getTitle());
+            dto.setCustomerId(customerId);
+            dto.setCourseId(courseId);
+            chapterStatuses.add(dto);
+        }
+        return chapterStatuses;
+    }
+
+
+
+
+
 
 }
