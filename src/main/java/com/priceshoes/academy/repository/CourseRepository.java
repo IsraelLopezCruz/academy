@@ -8,4 +8,5 @@ import java.util.List;
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
     List<Course> findByStatusInAndIdNotIn(List<Course.CourseStatus> status, List<Long> ids);
+    List<Course> findByIdNotIn(List<Long> ids);
 }

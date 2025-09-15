@@ -2,6 +2,7 @@ package com.priceshoes.academy.controller;
 
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CoursesProjectionResponse;
 import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import datadog.trace.api.Trace;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -63,5 +64,9 @@ public class AcademyController {
     @GetMapping("/chapter/finished/{courseId}/{customerId}")
     public List<ChapterStatusDTO> getChapterFinishedStatus(@NonNull @PathVariable Long courseId, @NonNull @PathVariable String customerId) {
         return academyService.getChapterStatuses(courseId,customerId);
+    }
+    @GetMapping("/customer/course/{customerId}")
+    public List<CoursesProjectionResponse> getCoursesProjection(@NonNull @PathVariable String customerId) {
+        return academyService.getCoursesProjection(customerId);
     }
 }

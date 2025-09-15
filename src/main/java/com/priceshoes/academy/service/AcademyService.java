@@ -6,6 +6,7 @@ import com.priceshoes.academy.exception.CourseNotFoundException;
 import com.priceshoes.academy.exception.ChapterNotFoundException;
 import com.priceshoes.academy.repository.*;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CoursesProjectionResponse;
 import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -355,5 +356,22 @@ public class AcademyService {
             chapterStatuses.add(dto);
         }
         return chapterStatuses;
+    }
+    public List<CoursesProjectionResponse> getCoursesProjection(String customerId){
+        List<CustomerCourse> listCourse = customerCourseRepository.findByCustomerId(customerId);
+        List<Long> listIds = new ArrayList<>();
+        for(CustomerCourse  customerCourse : listCourse){
+            listIds.add(customerCourse.getCourse().getId());
+        }
+        List<Course> listId = courseRepository.findByIdNotIn(listIds);
+        List<CoursesProjectionResponse> listCoursesProjection = new ArrayList<>();
+        for(Course dto2 : listId) {
+            CoursesProjectionResponse dto = new CoursesProjectionResponse();
+            dto.setId(dto2.getId());
+            dto.setTitle(dto2.getTitle());
+            dto.setDescription(dto2.getDescription());
+            listCoursesProjection.add(dto);
+        }
+        return listCoursesProjection;
     }
 }
