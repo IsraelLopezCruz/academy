@@ -6,6 +6,7 @@ import com.priceshoes.academy.exception.CourseNotFoundException;
 import com.priceshoes.academy.exception.ChapterNotFoundException;
 import com.priceshoes.academy.repository.*;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CoursesProjectionResponse;
 import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class AcademyService {
     private final ChapterRepository chapterRepository;
     private final CategoryRepository categoryRepository;
     private final CourseCategoryRepository courseCategoryRepository;
+    private final CustomerCourseChapterRepository customerCourseChapterRepository;
 
     private final Courses2CoursesForCustomerDTO courses2CoursesForCustomerDTO;
     private final Course2CourseForCustomerDTO course2CourseForCustomerDTO;
@@ -341,4 +343,35 @@ public class AcademyService {
     }
 
 
+    public List<ChapterStatusDTO> getChapterStatuses(Long courseId, String customerId ){
+        List<CustomerCourseChapter> chapter = customerCourseChapterRepository.findByStatusAndChapter_Course_id_AndCustomerCourse_CustomerId(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH,courseId,customerId);
+        List<ChapterStatusDTO> chapterStatuses = new ArrayList<>();
+        for(CustomerCourseChapter chapter1 : chapter){
+            ChapterStatusDTO dto = new ChapterStatusDTO();
+            dto.setId(chapter1.getChapter().getId());
+            dto.setStatus(chapter1.getStatus().name());
+            dto.setTitle(chapter1.getChapter().getTitle());
+            dto.setCustomerId(customerId);
+            dto.setCourseId(courseId);
+            chapterStatuses.add(dto);
+        }
+        return chapterStatuses;
+    }
+    public List<CoursesProjectionResponse> getCoursesProjection(String customerId){
+        List<CustomerCourse> listCourse = customerCourseRepository.findByCustomerId(customerId);
+        List<Long> listIds = new ArrayList<>();
+        for(CustomerCourse  customerCourse : listCourse){
+            listIds.add(customerCourse.getCourse().getId());
+        }
+        List<Course> listId = courseRepository.findByIdNotIn(listIds);
+        List<CoursesProjectionResponse> listCoursesProjection = new ArrayList<>();
+        for(Course dto2 : listId) {
+            CoursesProjectionResponse dto = new CoursesProjectionResponse();
+            dto.setId(dto2.getId());
+            dto.setTitle(dto2.getTitle());
+            dto.setDescription(dto2.getDescription());
+            listCoursesProjection.add(dto);
+        }
+        return listCoursesProjection;
+    }
 }
