@@ -1,5 +1,6 @@
 package com.priceshoes.academy.service;
 
+import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
 import com.priceshoes.academy.converter.*;
 import com.priceshoes.academy.domain.*;
 import com.priceshoes.academy.exception.CourseNotFoundException;
@@ -396,4 +397,18 @@ public class AcademyService {
             return false;
         }
      }
+     @Transactional
+    public CourseDescriptionDTO getCourseDescrption(CourseDescriptionRequest courseRequest){
+        Optional<Course> optionalCourse = courseRepository.findById(courseRequest.getId());
+        CourseDescriptionDTO courseDescrptionDTO = null;
+        if(optionalCourse.isPresent()){
+            Course course = optionalCourse.get();
+            course.setDescription(courseRequest.getDescription());
+            courseDescrptionDTO = new CourseDescriptionDTO(course.getId(),course.getDescription());
+            courseRepository.save(course);
+
+        }
+        return courseDescrptionDTO;
+     }
+
 }
