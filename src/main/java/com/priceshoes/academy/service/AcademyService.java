@@ -387,4 +387,13 @@ public class AcademyService {
          }
          return listCoursesProjection;
      }
+     public boolean getHasSeenAllCurses(String customerId){
+        long totalCourses = courseRepository.count();
+        long completeCursos = customerCourseRepository.countByCustomerIdAndStatus(customerId, CustomerCourse.CustomerCourseStatus.FINISH);
+        if(completeCursos == totalCourses){
+            return true;
+        } else {
+            return false;
+        }
+     }
 }
