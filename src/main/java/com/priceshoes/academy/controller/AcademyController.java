@@ -73,4 +73,8 @@ public class AcademyController {
     public List<CoursesProjectionResponse>  getCoursesNotCompleted() {
         return academyService.getCoursesNotCompleted();
     }
+    @GetMapping("/course/completed/{customerId}")
+    public boolean getCourseCompleted(@NonNull @PathVariable String customerId) {
+        return academyService.getHasSeenAllCurses(customerId);
+    }
 }

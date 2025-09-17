@@ -29,5 +29,7 @@ public interface CustomerCourseRepository extends JpaRepository<CustomerCourse, 
 
     @Query("SELECT DISTINCT cc.course.id FROM CustomerCourse cc")
     List<Long> findDistinctCourse_Id();
+    long countByCustomerIdAndStatus(String customerId, CustomerCourse.CustomerCourseStatus status);
+
 
 }
