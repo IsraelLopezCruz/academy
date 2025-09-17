@@ -27,4 +27,7 @@ public interface CustomerCourseRepository extends JpaRepository<CustomerCourse, 
     List<CustomerCourse> findByStatusAndCustomerId(CustomerCourse.CustomerCourseStatus status, @Param("customerId") String customerId);
     List<CustomerCourse> findByCustomerId(String customerId);
 
+    @Query("SELECT DISTINCT cc.course.id FROM CustomerCourse cc")
+    List<Long> findDistinctCourse_Id();
+
 }

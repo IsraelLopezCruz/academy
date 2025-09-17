@@ -69,4 +69,8 @@ public class AcademyController {
     public List<CoursesProjectionResponse> getCoursesProjection(@NonNull @PathVariable String customerId) {
         return academyService.getCoursesProjection(customerId);
     }
+    @GetMapping("course/never/completed")
+    public List<CoursesProjectionResponse>  getCoursesNotCompleted() {
+        return academyService.getCoursesNotCompleted();
+    }
 }

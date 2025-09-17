@@ -374,4 +374,17 @@ public class AcademyService {
         }
         return listCoursesProjection;
     }
+     public List<CoursesProjectionResponse> getCoursesNotCompleted(){
+         List<Long> listCourse = customerCourseRepository.findDistinctCourse_Id();
+         List<Course> listId = courseRepository.findByIdNotIn(listCourse);
+         List<CoursesProjectionResponse> listCoursesProjection = new ArrayList<>();
+         for(Course dto2 : listId) {
+             CoursesProjectionResponse dto = new CoursesProjectionResponse();
+             dto.setId(dto2.getId());
+             dto.setTitle(dto2.getTitle());
+             dto.setDescription(dto2.getDescription());
+             listCoursesProjection.add(dto);
+         }
+         return listCoursesProjection;
+     }
 }
