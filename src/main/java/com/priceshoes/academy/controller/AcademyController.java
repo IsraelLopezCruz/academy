@@ -2,6 +2,7 @@ package com.priceshoes.academy.controller;
 
 import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
 import com.priceshoes.academy.controller.request.CourseStatusRequest;
+import com.priceshoes.academy.domain.Course;
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
 import com.priceshoes.academy.service.response.CourseStatusDTO;
@@ -87,6 +88,11 @@ public class AcademyController {
     @PatchMapping("/update/disable/course")
     public ResponseEntity<Void> updateCourseStatus(@RequestBody CourseStatusRequest courseStatusRequest) {
         academyService.updateCourseStatus(courseStatusRequest);
+        return ResponseEntity.ok().build();
+    }
+    @PatchMapping("/enable/course")
+    public ResponseEntity<Course> updateCourseEnable(Course.CourseStatus status) {
+        academyService.updateEnableAllCourses(status);
         return ResponseEntity.ok().build();
     }
 }
