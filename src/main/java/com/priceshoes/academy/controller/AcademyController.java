@@ -25,8 +25,6 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class AcademyController {
-
-    @Autowired
     private final AcademyService academyService;
 
 
@@ -82,6 +80,6 @@ public class AcademyController {
     }
     @PatchMapping("/update/description/course")
     public ResponseEntity<CourseDescriptionDTO> updateCourseDescription(@NonNull @RequestBody CourseDescriptionRequest courseDescriptionRequest) {
-        return ResponseEntity.of(Optional.ofNullable(academyService.getCourseDescrption(courseDescriptionRequest)));
+        return ResponseEntity.of(Optional.ofNullable(academyService.updateCourseDescription(courseDescriptionRequest)));
     }
 }

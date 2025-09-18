@@ -398,7 +398,7 @@ public class AcademyService {
         }
      }
      @Transactional
-    public CourseDescriptionDTO getCourseDescrption(CourseDescriptionRequest courseRequest){
+    public CourseDescriptionDTO updateCourseDescription(CourseDescriptionRequest courseRequest){
         Optional<Course> optionalCourse = courseRepository.findById(courseRequest.getId());
         CourseDescriptionDTO courseDescrptionDTO = null;
         if(optionalCourse.isPresent()){
@@ -406,9 +406,7 @@ public class AcademyService {
             course.setDescription(courseRequest.getDescription());
             courseDescrptionDTO = new CourseDescriptionDTO(course.getId(),course.getDescription());
             courseRepository.save(course);
-
         }
         return courseDescrptionDTO;
-     }
-
+    }
 }
