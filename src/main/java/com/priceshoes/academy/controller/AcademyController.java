@@ -1,9 +1,9 @@
 package com.priceshoes.academy.controller;
 
+import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
 import com.priceshoes.academy.service.response.CoursesProjectionResponse;
-import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import datadog.trace.api.Trace;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.OAuthFlow;
@@ -12,18 +12,19 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @SecurityScheme(name = "priceshoes_auth", type = SecuritySchemeType.OAUTH2, flows = @OAuthFlows(clientCredentials = @OAuthFlow(tokenUrl = "${springdoc.auth_url}")))
 @RestController
 @AllArgsConstructor
 @Slf4j
 public class AcademyController {
-
     private final AcademyService academyService;
 
 
@@ -76,5 +77,9 @@ public class AcademyController {
     @GetMapping("/course/completed/{customerId}")
     public boolean getCourseCompleted(@NonNull @PathVariable String customerId) {
         return academyService.getHasSeenAllCurses(customerId);
+    }
+    @PatchMapping("/update/description/course")
+    public ResponseEntity<CourseDescriptionDTO> updateCourseDescription(@NonNull @RequestBody CourseDescriptionRequest courseDescriptionRequest) {
+        return ResponseEntity.of(Optional.ofNullable(academyService.updateCourseDescription(courseDescriptionRequest)));
     }
 }
