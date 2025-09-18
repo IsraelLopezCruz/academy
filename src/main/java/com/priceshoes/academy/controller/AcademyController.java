@@ -1,8 +1,10 @@
 package com.priceshoes.academy.controller;
 
 import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
+import com.priceshoes.academy.controller.request.CourseStatusRequest;
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CourseStatusDTO;
 import com.priceshoes.academy.service.response.CoursesProjectionResponse;
 import datadog.trace.api.Trace;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -81,5 +83,10 @@ public class AcademyController {
     @PatchMapping("/update/description/course")
     public ResponseEntity<CourseDescriptionDTO> updateCourseDescription(@NonNull @RequestBody CourseDescriptionRequest courseDescriptionRequest) {
         return ResponseEntity.of(Optional.ofNullable(academyService.updateCourseDescription(courseDescriptionRequest)));
+    }
+    @PatchMapping("/update/disable/course")
+    public ResponseEntity<Void> updateCourseStatus(@RequestBody CourseStatusRequest courseStatusRequest) {
+        academyService.updateCourseStatus(courseStatusRequest);
+        return ResponseEntity.ok().build();
     }
 }
