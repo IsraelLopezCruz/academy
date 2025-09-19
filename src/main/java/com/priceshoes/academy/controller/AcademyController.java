@@ -91,7 +91,7 @@ public class AcademyController {
         return ResponseEntity.ok().build();
     }
     @PatchMapping("/enable/course")
-    public ResponseEntity<Course> updateCourseEnable(Course.CourseStatus status) {
+    public ResponseEntity<Void> updateCourseEnable(Course.CourseStatus status) {
         academyService.updateEnableAllCourses(status);
         return ResponseEntity.ok().build();
     }

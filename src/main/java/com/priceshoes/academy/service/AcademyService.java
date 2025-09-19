@@ -423,12 +423,11 @@ public class AcademyService {
         }
     }
     @Transactional
-    public List<Course> updateEnableAllCourses(Course.CourseStatus status) {
+    public void updateEnableAllCourses(Course.CourseStatus status) {
         List<Course> listCourse = courseRepository.findAll();
         for (Course dto2 : listCourse) {
             dto2.setStatus(status);
             courseRepository.save(dto2);
         }
-        return listCourse;
     }
 }
