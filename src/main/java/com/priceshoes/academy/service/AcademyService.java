@@ -1,12 +1,14 @@
 package com.priceshoes.academy.service;
 
 import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
+import com.priceshoes.academy.controller.request.CourseStatusRequest;
 import com.priceshoes.academy.converter.*;
 import com.priceshoes.academy.domain.*;
 import com.priceshoes.academy.exception.CourseNotFoundException;
 import com.priceshoes.academy.exception.ChapterNotFoundException;
 import com.priceshoes.academy.repository.*;
 import com.priceshoes.academy.service.dto.*;
+import com.priceshoes.academy.service.response.CourseStatusDTO;
 import com.priceshoes.academy.service.response.CoursesProjectionResponse;
 import com.priceshoes.academy.service.response.CustomerCompliedResponse;
 import lombok.AllArgsConstructor;
@@ -408,5 +410,22 @@ public class AcademyService {
             courseRepository.save(course);
         }
         return courseDescrptionDTO;
+    }
+    @Transactional
+    public void updateCourseStatus(CourseStatusRequest courseStatusRequest) {
+        List<Long> listCourse = customerCourseRepository.findDistinctCourse_Id();
+        List<Course> listId = courseRepository.findByIdNotIn(listCourse);
+        for (Course dto2 : listId) {
+            dto2.setStatus(courseStatusRequest.getStatus());
+            dto2.setTitle(courseStatusRequest.getTitle());
+            dto2.setStatus(courseStatusRequest.getStatus());
+        }
+    }
+    @Transactional
+    public void updateEnableAllCourses(Course.CourseStatus status) {
+        List<Course> listCourse = courseRepository.findAll();
+        for (Course dto2 : listCourse) {
+            dto2.setStatus(status);
+        }
     }
 }
