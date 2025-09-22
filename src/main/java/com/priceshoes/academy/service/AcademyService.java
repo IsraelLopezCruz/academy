@@ -2,15 +2,15 @@ package com.priceshoes.academy.service;
 
 import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
 import com.priceshoes.academy.controller.request.CourseStatusRequest;
+import com.priceshoes.academy.controller.request.CustomerChapterRequest;
+import com.priceshoes.academy.controller.request.CustomerCourseRequest;
 import com.priceshoes.academy.converter.*;
 import com.priceshoes.academy.domain.*;
 import com.priceshoes.academy.exception.CourseNotFoundException;
 import com.priceshoes.academy.exception.ChapterNotFoundException;
 import com.priceshoes.academy.repository.*;
 import com.priceshoes.academy.service.dto.*;
-import com.priceshoes.academy.service.response.CourseStatusDTO;
-import com.priceshoes.academy.service.response.CoursesProjectionResponse;
-import com.priceshoes.academy.service.response.CustomerCompliedResponse;
+import com.priceshoes.academy.service.response.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -427,5 +428,45 @@ public class AcademyService {
         for (Course dto2 : listCourse) {
             dto2.setStatus(status);
         }
+    }
+    public Optional<CustomerCourseResponse> saveCustomerCourse(@RequestBody CustomerCourseRequest customerCourseRequest) {
+       Optional<Course> optCourse = courseRepository.findById(customerCourseRequest.getCourseId());
+       if(optCourse.isPresent()) {
+           CustomerCourse customerCourse = CustomerCourse.builder()
+                   .customerId(customerCourseRequest.getCustomerId())
+                   .course(optCourse.get())
+                   .status(customerCourseRequest.getStatus())
+                   .build();
+           customerCourse = customerCourseRepository.save(customerCourse);
+           return Optional.of(CustomerCourseResponse.builder()
+                   .id(customerCourse.getId())
+                   .courseId(customerCourse.getCourse().getId())
+                   .customerId(customerCourse.getCustomerId())
+                   .status(customerCourseRequest.getStatus())
+                   .build());
+       }
+       return Optional.empty();
+    }
+    public Optional<CustomerChapterResponse> saveCustomerCourseChapter(@RequestBody CustomerChapterRequest request) {
+        Optional<CustomerCourse> optCustomerCourse = customerCourseRepository.findById(request.getCustomerCourseId());
+        Optional<Chapter> optChapter = chapterRepository.findById(request.getChapterId());
+        if(optCustomerCourse.isPresent() && optChapter.isPresent()) {
+            CustomerCourse customerCourse = optCustomerCourse.get();
+            Chapter chapter = optChapter.get();
+            CustomerCourseChapter newChapterLink = CustomerCourseChapter.builder()
+                    .customerCourse(customerCourse)
+                    .chapter(chapter)
+                    .status(request.getStatus())
+                    .build();
+           newChapterLink = customerCourseChapterRepository.save(newChapterLink);
+            CustomerChapterResponse response = CustomerChapterResponse.builder()
+                    .id(newChapterLink.getId())
+                    .customerCourseId(customerCourse.getId())
+                    .chapterId(chapter.getId())
+                    .status(CustomerCourse.CustomerCourseStatus.FINISH)
+                    .build();
+            return Optional.of(response);
+        }
+        return Optional.empty();
     }
 }

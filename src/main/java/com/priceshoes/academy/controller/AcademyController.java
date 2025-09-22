@@ -2,11 +2,14 @@ package com.priceshoes.academy.controller;
 
 import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
 import com.priceshoes.academy.controller.request.CourseStatusRequest;
+import com.priceshoes.academy.controller.request.CustomerChapterRequest;
+import com.priceshoes.academy.controller.request.CustomerCourseRequest;
 import com.priceshoes.academy.domain.Course;
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
-import com.priceshoes.academy.service.response.CourseStatusDTO;
 import com.priceshoes.academy.service.response.CoursesProjectionResponse;
+import com.priceshoes.academy.service.response.CustomerChapterResponse;
+import com.priceshoes.academy.service.response.CustomerCourseResponse;
 import datadog.trace.api.Trace;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.OAuthFlow;
@@ -15,7 +18,6 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -94,5 +96,13 @@ public class AcademyController {
     public ResponseEntity<Void> updateCourseEnable(Course.CourseStatus status) {
         academyService.updateEnableAllCourses(status);
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/customer/course")
+    public ResponseEntity<CustomerCourseResponse> saveCustomerCourse(@RequestBody CustomerCourseRequest customerCourseRequest) {
+        return ResponseEntity.of(academyService.saveCustomerCourse(customerCourseRequest));
+    }
+    @PostMapping("/customer/course/chapter")
+    public ResponseEntity<CustomerChapterResponse> saveCustomerCourseChapter(@RequestBody CustomerChapterRequest request) {
+        return ResponseEntity.of(academyService.saveCustomerCourseChapter(request));
     }
 }
