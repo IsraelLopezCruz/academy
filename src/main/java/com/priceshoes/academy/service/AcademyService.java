@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.priceshoes.academy.configuration.RedisCacheManagerConfig.*;
@@ -43,6 +44,13 @@ public class AcademyService {
     private final Category2CategoryDTO category2CategoryDTO;
     private final Course2CourseDTO course2CourseDTO;
     private final Chapter2ChapterDTO chapter2ChapterDTO;
+    private final CustomerCourseChapter2ChapterStatusDTO customerCourseChapter2ChapterStatusDTO;
+    private final Course2CourseResponseDTO course2CourseResponseDTO;
+    private final CustomerCourse2CustomerCompliedResponseDTO customerCourse2CustomerCompliedResponseDTO;
+    private final CustomerCourse2CustomerCourseResponseDTO customerCourse2CustomerCourseResponseDTO;
+    private final Course2CoursesProjectionResponseDTO course2CoursesProjectionResponseDTO;
+
+
 
     @Caching(cacheable = @Cacheable(value = CATEGORIES))
     public List<CategoryDTO> getCategoriesCourse(){
@@ -336,62 +344,27 @@ public class AcademyService {
     }
     public List<CustomerCompliedResponse> getListCourses(String customerId){
         List<CustomerCourse> customerComplete = customerCourseRepository.findByStatusAndCustomerId(CustomerCourse.CustomerCourseStatus.FINISH, customerId);
-        List<CustomerCompliedResponse> compliedResponse = new ArrayList<>();
-        for (CustomerCourse customerCourse : customerComplete) {
-            Course course = customerCourse.getCourse();
-            compliedResponse.add(new CustomerCompliedResponse(course.getId(),
-                    course.getTitle(),course.getDescription(), course.getStatus(),course.getCreatedAt()));
-
-        }
-        return compliedResponse;
+        return customerComplete.stream()
+                .map(customerCourse2CustomerCompliedResponseDTO::apply)
+                .toList();
     }
-
-
     public List<ChapterStatusDTO> getChapterStatuses(Long courseId, String customerId ){
         List<CustomerCourseChapter> chapter = customerCourseChapterRepository.findByStatusAndChapter_Course_id_AndCustomerCourse_CustomerId(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH,courseId,customerId);
-        List<ChapterStatusDTO> chapterStatuses = new ArrayList<>();
-        for(CustomerCourseChapter chapter1 : chapter){
-            ChapterStatusDTO dto = new ChapterStatusDTO();
-            dto.setId(chapter1.getChapter().getId());
-            dto.setStatus(chapter1.getStatus().name());
-            dto.setTitle(chapter1.getChapter().getTitle());
-            dto.setCustomerId(customerId);
-            dto.setCourseId(courseId);
-            chapterStatuses.add(dto);
-        }
-        return chapterStatuses;
+        return chapter.stream()
+                .map(ch -> customerCourseChapter2ChapterStatusDTO.apply(ch))
+                .toList();
     }
     public List<CoursesProjectionResponse> getCoursesProjection(String customerId){
         List<CustomerCourse> listCourse = customerCourseRepository.findByCustomerId(customerId);
-        List<Long> listIds = new ArrayList<>();
-        for(CustomerCourse  customerCourse : listCourse){
-            listIds.add(customerCourse.getCourse().getId());
-        }
-        List<Course> listId = courseRepository.findByIdNotIn(listIds);
-        List<CoursesProjectionResponse> listCoursesProjection = new ArrayList<>();
-        for(Course dto2 : listId) {
-            CoursesProjectionResponse dto = new CoursesProjectionResponse();
-            dto.setId(dto2.getId());
-            dto.setTitle(dto2.getTitle());
-            dto.setDescription(dto2.getDescription());
-            listCoursesProjection.add(dto);
-        }
-        return listCoursesProjection;
+        List<Long> streamLong = listCourse.stream()
+                .map(cc-> cc.getCourse().getId())
+                .toList();
+        List<Course> listId = courseRepository.findByIdNotIn(streamLong);
+        return  listId.stream()
+                .map(course2CoursesProjectionResponseDTO::apply)
+                .toList();
     }
-     public List<CoursesProjectionResponse> getCoursesNotCompleted(){
-         List<Long> listCourse = customerCourseRepository.findDistinctCourse_Id();
-         List<Course> listId = courseRepository.findByIdNotIn(listCourse);
-         List<CoursesProjectionResponse> listCoursesProjection = new ArrayList<>();
-         for(Course dto2 : listId) {
-             CoursesProjectionResponse dto = new CoursesProjectionResponse();
-             dto.setId(dto2.getId());
-             dto.setTitle(dto2.getTitle());
-             dto.setDescription(dto2.getDescription());
-             listCoursesProjection.add(dto);
-         }
-         return listCoursesProjection;
-     }
-     public boolean getHasSeenAllCurses(String customerId){
+    public boolean getHasSeenAllCurses(String customerId){
         long totalCourses = courseRepository.count();
         long completeCursos = customerCourseRepository.countByCustomerIdAndStatus(customerId, CustomerCourse.CustomerCourseStatus.FINISH);
         if(completeCursos == totalCourses){
@@ -399,7 +372,7 @@ public class AcademyService {
         } else {
             return false;
         }
-     }
+    }
      @Transactional
     public CourseDescriptionDTO updateCourseDescription(CourseDescriptionRequest courseRequest){
         Optional<Course> optionalCourse = courseRepository.findById(courseRequest.getId());
@@ -438,12 +411,7 @@ public class AcademyService {
                    .status(customerCourseRequest.getStatus())
                    .build();
            customerCourse = customerCourseRepository.save(customerCourse);
-           return Optional.of(CustomerCourseResponse.builder()
-                   .id(customerCourse.getId())
-                   .courseId(customerCourse.getCourse().getId())
-                   .customerId(customerCourse.getCustomerId())
-                   .status(customerCourseRequest.getStatus())
-                   .build());
+           return Optional.of(customerCourse2CustomerCourseResponseDTO.apply(customerCourse));
        }
        return Optional.empty();
     }
@@ -468,5 +436,10 @@ public class AcademyService {
             return Optional.of(response);
         }
         return Optional.empty();
+    }
+    public List<CourseResponse> getCoursesNotCompleted(){
+        List<Long> listCourse = customerCourseRepository.findDistinctCourse_Id();
+        List<Course> coursesNotIn = courseRepository.findByIdNotIn(listCourse);
+        return  coursesNotIn.stream().map(course2CourseResponseDTO::apply).toList();
     }
 }

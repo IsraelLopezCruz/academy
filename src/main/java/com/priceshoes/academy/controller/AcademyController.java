@@ -7,9 +7,7 @@ import com.priceshoes.academy.controller.request.CustomerCourseRequest;
 import com.priceshoes.academy.domain.Course;
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
-import com.priceshoes.academy.service.response.CoursesProjectionResponse;
-import com.priceshoes.academy.service.response.CustomerChapterResponse;
-import com.priceshoes.academy.service.response.CustomerCourseResponse;
+import com.priceshoes.academy.service.response.*;
 import datadog.trace.api.Trace;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.OAuthFlow;
@@ -66,7 +64,10 @@ public class AcademyController {
     public long getTotalCurtomer(@NonNull @PathVariable Long courseId){
         return academyService.getTotalCourses(courseId);
     }
-
+    @GetMapping("/list/course/{customerId}")
+    public List<CustomerCompliedResponse> getCourseList(@NonNull @PathVariable String customerId){
+        return academyService.getListCourses(customerId);
+    }
     @GetMapping("/chapter/finished/{courseId}/{customerId}")
     public List<ChapterStatusDTO> getChapterFinishedStatus(@NonNull @PathVariable Long courseId, @NonNull @PathVariable String customerId) {
         return academyService.getChapterStatuses(courseId,customerId);
@@ -76,7 +77,7 @@ public class AcademyController {
         return academyService.getCoursesProjection(customerId);
     }
     @GetMapping("course/never/completed")
-    public List<CoursesProjectionResponse>  getCoursesNotCompleted() {
+    public List<CourseResponse>  getCoursesNotCompleted() {
         return academyService.getCoursesNotCompleted();
     }
     @GetMapping("/course/completed/{customerId}")

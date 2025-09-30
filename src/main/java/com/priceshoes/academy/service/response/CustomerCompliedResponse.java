@@ -1,10 +1,11 @@
 package com.priceshoes.academy.service.response;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.priceshoes.academy.domain.Course;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
-
+@Builder
 public class CustomerCompliedResponse {
     Long id;
     String title;
