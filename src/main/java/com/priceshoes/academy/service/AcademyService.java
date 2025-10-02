@@ -1,9 +1,6 @@
 package com.priceshoes.academy.service;
 
-import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
-import com.priceshoes.academy.controller.request.CourseStatusRequest;
-import com.priceshoes.academy.controller.request.CustomerChapterRequest;
-import com.priceshoes.academy.controller.request.CustomerCourseRequest;
+import com.priceshoes.academy.controller.request.*;
 import com.priceshoes.academy.converter.*;
 import com.priceshoes.academy.domain.*;
 import com.priceshoes.academy.exception.CourseNotFoundException;
@@ -21,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.priceshoes.academy.configuration.RedisCacheManagerConfig.*;
@@ -49,18 +45,19 @@ public class AcademyService {
     private final CustomerCourse2CustomerCompliedResponseDTO customerCourse2CustomerCompliedResponseDTO;
     private final CustomerCourse2CustomerCourseResponseDTO customerCourse2CustomerCourseResponseDTO;
     private final Course2CoursesProjectionResponseDTO course2CoursesProjectionResponseDTO;
-
+    private final Course2CourseNewResponse course2CourseNewResponse;
+    private final CourseNewRequetDTO2Course courseNewRequetDTO2Course;
 
 
     @Caching(cacheable = @Cacheable(value = CATEGORIES))
-    public List<CategoryDTO> getCategoriesCourse(){
+    public List<CategoryDTO> getCategoriesCourse() {
         var categories = categoryRepository.findAll();
         return categories.stream().sorted(Comparator.comparing(Category::getPriority)).map(category2CategoryDTO).toList();
     }
 
     @Caching(evict = {@CacheEvict(value = CATEGORIES, allEntries = true)})
     @Transactional
-    public void createCategoryCourse(CategoryCourseRequest categoryCourseRequest){
+    public void createCategoryCourse(CategoryCourseRequest categoryCourseRequest) {
         var categories = categoryRepository.findByPriorityGreaterThanEqual(categoryCourseRequest.getPriority());
         categories.forEach(c -> c.setPriority(c.getPriority() + 1));
         var categoryCourse = categoryCourseRequest2CategoryCourse.apply(categoryCourseRequest);
@@ -75,26 +72,26 @@ public class AcademyService {
             @CacheEvict(value = COURSES_FROM_CATEGORY, allEntries = true),
     })
     @Transactional
-    public void updateCategoryCourse(CategoryCourseRequest categoryCourseRequest){
+    public void updateCategoryCourse(CategoryCourseRequest categoryCourseRequest) {
         var category = categoryRepository.findById(categoryCourseRequest.getId());
         category.ifPresentOrElse(c -> {
             c.setTitle(categoryCourseRequest.getTitle());
-            if(!c.getPriority().equals(categoryCourseRequest.getPriority())){
+            if (!c.getPriority().equals(categoryCourseRequest.getPriority())) {
                 c.setPriority(categoryCourseRequest.getPriority());
                 var categories = categoryRepository.findByPriorityGreaterThanEqualAndIdIsNot(categoryCourseRequest.getPriority(), c.getId());
                 categories.forEach(ca -> ca.setPriority(ca.getPriority() + 1));
             }
-        }, () -> log.info("CategoryCourse not found to update, categoryId:{}", categoryCourseRequest.getId()) );
+        }, () -> log.info("CategoryCourse not found to update, categoryId:{}", categoryCourseRequest.getId()));
     }
 
 
     @Caching(cacheable = @Cacheable(value = COURSES))
     @Transactional(readOnly = true)
-    public List<CourseDTO> getCourses(){
+    public List<CourseDTO> getCourses() {
         var courses = courseRepository.findAll();
-        return  courses.stream()
+        return courses.stream()
                 .sorted(Comparator.comparing(c -> {
-                    if(!c.getCourseCategory().isEmpty()){
+                    if (!c.getCourseCategory().isEmpty()) {
                         return c.getCourseCategory().getFirst().getPriority();
                     }
                     return 10000;
@@ -104,16 +101,16 @@ public class AcademyService {
 
     @Caching(cacheable = @Cacheable(value = COURSES_FROM_CATEGORY))
     @Transactional(readOnly = true)
-    public List<CourseDTO> getCoursesFromCategory(Long categoryId){
+    public List<CourseDTO> getCoursesFromCategory(Long categoryId) {
         var coursesCategory = courseCategoryRepository.findByCategory_Id(categoryId);
-        return  coursesCategory.stream()
+        return coursesCategory.stream()
                 .sorted(Comparator.comparing(CourseCategory::getPriority))
                 .map(cc -> course2CourseDTO.apply(cc.getCourse())).toList();
     }
 
     @Caching(cacheable = @Cacheable(value = CHAPTERS_FROM_COURSE))
     @Transactional(readOnly = true)
-    public List<ChapterDTO> getChaptersFromCourse(Long courseId){
+    public List<ChapterDTO> getChaptersFromCourse(Long courseId) {
         var chapters = chapterRepository.findByCourse_Id(courseId);
         return chapters.stream().map(chapter2ChapterDTO).toList();
     }
@@ -125,8 +122,8 @@ public class AcademyService {
             @CacheEvict(value = COURSES_FROM_CATEGORY, allEntries = true)
     })
     @Transactional
-    public void createCourse(CourseRequest courseRequest){
-        if(Objects.nonNull(courseRequest.getCourseCategory())){
+    public void createCourse(CourseRequest courseRequest) {
+        if (Objects.nonNull(courseRequest.getCourseCategory())) {
             courseRequest.getCourseCategory().forEach(cc -> {
                 var coursesCategory = courseCategoryRepository.findByCategory_IdAndPriorityGreaterThanEqual(cc.getCategoryId(), cc.getPriority());
                 coursesCategory.forEach(c -> c.setPriority(c.getPriority() + 1));
@@ -143,7 +140,7 @@ public class AcademyService {
             @CacheEvict(value = COURSES_FROM_CATEGORY, allEntries = true)
     })
     @Transactional
-    public void updateCourseInformation(CourseRequest courseRequest){
+    public void updateCourseInformation(CourseRequest courseRequest) {
         var course = courseRepository.findById(courseRequest.getId());
         course.ifPresentOrElse(c -> {
             courseRequest.getCourseCategory().forEach(cc -> {
@@ -154,10 +151,10 @@ public class AcademyService {
             c.getCourseCategory().clear();
             var courseUpdated = updateCourseFromCourseRequest(c, courseRequest);
             courseRepository.save(courseUpdated);
-        },() -> log.info("Course not found to update, courseId:{}", courseRequest.getId()));
+        }, () -> log.info("Course not found to update, courseId:{}", courseRequest.getId()));
     }
 
-    private Course updateCourseFromCourseRequest(Course course, CourseRequest courseRequest){
+    private Course updateCourseFromCourseRequest(Course course, CourseRequest courseRequest) {
         List<CourseCategory> courseCategory = courseRequest.getCourseCategory().stream()
                 .map(c -> CourseCategory.builder().course(course)
                         .categoryId(c.getCategoryId())
@@ -183,7 +180,7 @@ public class AcademyService {
             @CacheEvict(value = CHAPTERS_FROM_COURSE, allEntries = true)
     })
     @Transactional
-    public void addChapterCourse(CourseChapterRequest courseChapterRequest){
+    public void addChapterCourse(CourseChapterRequest courseChapterRequest) {
         var course = courseRepository.findById(courseChapterRequest.getId());
         course.ifPresentOrElse(c -> {
             var lstCourseChapters = courseChapterRequest.getChapter();
@@ -214,7 +211,7 @@ public class AcademyService {
             @CacheEvict(value = CHAPTERS_FROM_COURSE, allEntries = true)
     })
     @Transactional
-    public void deleteCourse(CourseDeleteRequest courseDeleteRequest){
+    public void deleteCourse(CourseDeleteRequest courseDeleteRequest) {
         var course = courseRepository.findById(courseDeleteRequest.getId());
         course.ifPresentOrElse(courseRepository::delete,
                 () -> log.info("Course not found to delete, courseId:{}", courseDeleteRequest.getId()));
@@ -228,15 +225,15 @@ public class AcademyService {
             @CacheEvict(value = CHAPTERS_FROM_COURSE, allEntries = true)
     })
     @Transactional
-    public void updateChapter(ChapterRequest chapterRequest){
+    public void updateChapter(ChapterRequest chapterRequest) {
         var chapter = chapterRepository.findById(chapterRequest.getId());
         chapter.ifPresentOrElse(ch -> {
             var chapterUpdated = updateChapter(ch, chapterRequest);
             chapterRepository.save(chapterUpdated);
-        },() -> log.info("Chapter not found to update, chapterId:{}", chapterRequest.getId()));
+        }, () -> log.info("Chapter not found to update, chapterId:{}", chapterRequest.getId()));
     }
 
-    private Chapter updateChapter(Chapter chapter, ChapterRequest chapterRequest){
+    private Chapter updateChapter(Chapter chapter, ChapterRequest chapterRequest) {
         chapter.setTitle(chapterRequest.getTitle());
         chapter.setDescription(chapterRequest.getDescription());
         chapter.setUrlMedia(chapterRequest.getUrlMedia());
@@ -255,24 +252,24 @@ public class AcademyService {
             @CacheEvict(value = CHAPTERS_FROM_COURSE, allEntries = true)
     })
     @Transactional
-    public void deleteCourseChapters(CourseDeleteRequest courseDeleteRequest){
+    public void deleteCourseChapters(CourseDeleteRequest courseDeleteRequest) {
         var course = courseRepository.findById(courseDeleteRequest.getId());
         course.ifPresentOrElse(c -> {
             var removeListChapters = c.getChapter().stream()
                     .filter(ch -> courseDeleteRequest.getChapter().stream().anyMatch(chh -> chh.getId().equals(ch.getId())))
                     .toList();
 
-                c.getChapter().removeAll(removeListChapters);
-                courseRepository.save(c);
-                }, () -> log.info("Course not found to delete chapters, courseId:{}", courseDeleteRequest.getId()));
+            c.getChapter().removeAll(removeListChapters);
+            courseRepository.save(c);
+        }, () -> log.info("Course not found to delete chapters, courseId:{}", courseDeleteRequest.getId()));
     }
 
 
     @Caching(cacheable = @Cacheable(value = COURSES_FOR_CUSTOMER, key = "#customerId"))
     @Transactional(readOnly = true)
-    public List<CoursesForCustomerDTO> getCoursesForCustomer(String customerId){
-        List<CustomerCourse> lstCustomerCourseId =  customerCourseRepository.findByCustomerIdAndCourseStatus(customerId, Course.CourseStatus.AVAILABLE);
-        List<Long> listIds = lstCustomerCourseId.isEmpty()? List.of(0L) : lstCustomerCourseId.stream().map(c -> c.getCourse().getId()).toList();
+    public List<CoursesForCustomerDTO> getCoursesForCustomer(String customerId) {
+        List<CustomerCourse> lstCustomerCourseId = customerCourseRepository.findByCustomerIdAndCourseStatus(customerId, Course.CourseStatus.AVAILABLE);
+        List<Long> listIds = lstCustomerCourseId.isEmpty() ? List.of(0L) : lstCustomerCourseId.stream().map(c -> c.getCourse().getId()).toList();
         List<Course> lstCourse = courseRepository.findByStatusInAndIdNotIn(List.of(Course.CourseStatus.AVAILABLE, Course.CourseStatus.SOON), listIds);
 
         return courses2CoursesForCustomerDTO.apply(lstCourse, lstCustomerCourseId, customerId);
@@ -280,8 +277,8 @@ public class AcademyService {
 
     @Caching(cacheable = @Cacheable(value = COURSE_FOR_CUSTOMER, key = "#customerId + #courseId"))
     @Transactional(readOnly = true)
-    public CourseForCustomerDTO getCourseForCustomer(Long courseId, Long categoryId, String customerId){
-        var courseCustomer= courseCategoryRepository.findByCourse_IdAndCategory_Id(courseId, categoryId).orElseThrow(CourseNotFoundException::new);
+    public CourseForCustomerDTO getCourseForCustomer(Long courseId, Long categoryId, String customerId) {
+        var courseCustomer = courseCategoryRepository.findByCourse_IdAndCategory_Id(courseId, categoryId).orElseThrow(CourseNotFoundException::new);
         var optCustomerCourse = customerCourseRepository.findByCustomerIdAndCourseId(customerId, courseId);
 
         return course2CourseForCustomerDTO.apply(courseCustomer, optCustomerCourse);
@@ -292,7 +289,7 @@ public class AcademyService {
             @CacheEvict(value = COURSES_FOR_CUSTOMER, key = "#customrChapterRequest.customerId"),
             @CacheEvict(value = COURSE_FOR_CUSTOMER, key = "#customrChapterRequest.customerId + #customrChapterRequest.courseId")
     })
-    public void createCustomerCourseChapter(CustomrChapterRequest customrChapterRequest){
+    public void createCustomerCourseChapter(CustomrChapterRequest customrChapterRequest) {
         var customerCourse = customerCourseRepository.findByCustomerIdAndCourseId(customrChapterRequest.getCustomerId(), customrChapterRequest.getCourseId())
                 .orElseGet(() -> CustomerCourse.builder()
                         .customerId(customrChapterRequest.getCustomerId())
@@ -307,7 +304,7 @@ public class AcademyService {
         customerChapter.ifPresentOrElse(c -> c.setStatus(CustomerCourseChapter.CustomerCourseChapterStatus.valueOf(customrChapterRequest.getStatus().name())),
                 () -> {
                     var chapter = chapterRepository.findById(customrChapterRequest.getChapterId()).orElseThrow(ChapterNotFoundException::new);
-                    customerCourse.getCustomerCourseChapters().add(                     CustomerCourseChapter.builder()
+                    customerCourse.getCustomerCourseChapters().add(CustomerCourseChapter.builder()
                             .status(CustomerCourseChapter.CustomerCourseChapterStatus.valueOf(customrChapterRequest.getStatus().name()))
                             .chapter(chapter)
                             .customerCourse(customerCourse)
@@ -315,7 +312,7 @@ public class AcademyService {
                 });
 
         long countFinish = customerCourse.getCustomerCourseChapters().stream().filter(c -> c.getStatus().equals(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH)).count();
-        if(countFinish == customerCourse.getCourse().getChapters()){
+        if (countFinish == customerCourse.getCourse().getChapters()) {
             customerCourse.setStatus(CustomerCourse.CustomerCourseStatus.FINISH);
             customerCourse.setUrlResource(customerCourse.getCourse().getUrlResource());
         }
@@ -332,59 +329,67 @@ public class AcademyService {
             @CacheEvict(value = CHAPTERS_FROM_COURSE, allEntries = true)
     })
     @Transactional
-    public void deleteCache(){}
+    public void deleteCache() {
+    }
 
-    public long getTotalSocias(){
+    public long getTotalSocias() {
         long totalSocias = customerCourseRepository.countByStatus(CustomerCourse.CustomerCourseStatus.FINISH);
         return totalSocias;
     }
-    public long getTotalCourses(Long courseId ){
+
+    public long getTotalCourses(Long courseId) {
         long totalPersonas = customerCourseRepository.countByStatusAndCourseId(CustomerCourse.CustomerCourseStatus.FINISH, courseId);
         return totalPersonas;
     }
-    public List<CustomerCompliedResponse> getListCourses(String customerId){
+
+    public List<CustomerCompliedResponse> getListCourses(String customerId) {
         List<CustomerCourse> customerComplete = customerCourseRepository.findByStatusAndCustomerId(CustomerCourse.CustomerCourseStatus.FINISH, customerId);
         return customerComplete.stream()
                 .map(customerCourse2CustomerCompliedResponseDTO::apply)
                 .toList();
     }
-    public List<ChapterStatusDTO> getChapterStatuses(Long courseId, String customerId ){
-        List<CustomerCourseChapter> chapter = customerCourseChapterRepository.findByStatusAndChapter_Course_id_AndCustomerCourse_CustomerId(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH,courseId,customerId);
+
+    public List<ChapterStatusDTO> getChapterStatuses(Long courseId, String customerId) {
+        List<CustomerCourseChapter> chapter = customerCourseChapterRepository.findByStatusAndChapter_Course_id_AndCustomerCourse_CustomerId(CustomerCourseChapter.CustomerCourseChapterStatus.FINISH, courseId, customerId);
         return chapter.stream()
                 .map(ch -> customerCourseChapter2ChapterStatusDTO.apply(ch))
                 .toList();
     }
-    public List<CoursesProjectionResponse> getCoursesProjection(String customerId){
+
+    public List<CoursesProjectionResponse> getCoursesProjection(String customerId) {
         List<CustomerCourse> listCourse = customerCourseRepository.findByCustomerId(customerId);
         List<Long> streamLong = listCourse.stream()
-                .map(cc-> cc.getCourse().getId())
+                .map(cc -> cc.getCourse().getId())
                 .toList();
         List<Course> listId = courseRepository.findByIdNotIn(streamLong);
-        return  listId.stream()
+        return listId.stream()
                 .map(course2CoursesProjectionResponseDTO::apply)
                 .toList();
     }
-    public boolean getHasSeenAllCurses(String customerId){
+
+    public boolean getHasSeenAllCurses(String customerId) {
         long totalCourses = courseRepository.count();
         long completeCursos = customerCourseRepository.countByCustomerIdAndStatus(customerId, CustomerCourse.CustomerCourseStatus.FINISH);
-        if(completeCursos == totalCourses){
+        if (completeCursos == totalCourses) {
             return true;
         } else {
             return false;
         }
     }
-     @Transactional
-    public CourseDescriptionDTO updateCourseDescription(CourseDescriptionRequest courseRequest){
+
+    @Transactional
+    public CourseDescriptionDTO updateCourseDescription(CourseDescriptionRequest courseRequest) {
         Optional<Course> optionalCourse = courseRepository.findById(courseRequest.getId());
         CourseDescriptionDTO courseDescrptionDTO = null;
-        if(optionalCourse.isPresent()){
+        if (optionalCourse.isPresent()) {
             Course course = optionalCourse.get();
             course.setDescription(courseRequest.getDescription());
-            courseDescrptionDTO = new CourseDescriptionDTO(course.getId(),course.getDescription());
+            courseDescrptionDTO = new CourseDescriptionDTO(course.getId(), course.getDescription());
             courseRepository.save(course);
         }
         return courseDescrptionDTO;
     }
+
     @Transactional
     public void updateCourseStatus(CourseStatusRequest courseStatusRequest) {
         List<Long> listCourse = customerCourseRepository.findDistinctCourse_Id();
@@ -395,6 +400,7 @@ public class AcademyService {
             dto2.setStatus(courseStatusRequest.getStatus());
         }
     }
+
     @Transactional
     public void updateEnableAllCourses(Course.CourseStatus status) {
         List<Course> listCourse = courseRepository.findAll();
@@ -402,23 +408,25 @@ public class AcademyService {
             dto2.setStatus(status);
         }
     }
+
     public Optional<CustomerCourseResponse> saveCustomerCourse(@RequestBody CustomerCourseRequest customerCourseRequest) {
-       Optional<Course> optCourse = courseRepository.findById(customerCourseRequest.getCourseId());
-       if(optCourse.isPresent()) {
-           CustomerCourse customerCourse = CustomerCourse.builder()
-                   .customerId(customerCourseRequest.getCustomerId())
-                   .course(optCourse.get())
-                   .status(customerCourseRequest.getStatus())
-                   .build();
-           customerCourse = customerCourseRepository.save(customerCourse);
-           return Optional.of(customerCourse2CustomerCourseResponseDTO.apply(customerCourse));
-       }
-       return Optional.empty();
+        Optional<Course> optCourse = courseRepository.findById(customerCourseRequest.getCourseId());
+        if (optCourse.isPresent()) {
+            CustomerCourse customerCourse = CustomerCourse.builder()
+                    .customerId(customerCourseRequest.getCustomerId())
+                    .course(optCourse.get())
+                    .status(customerCourseRequest.getStatus())
+                    .build();
+            customerCourse = customerCourseRepository.save(customerCourse);
+            return Optional.of(customerCourse2CustomerCourseResponseDTO.apply(customerCourse));
+        }
+        return Optional.empty();
     }
+
     public Optional<CustomerChapterResponse> saveCustomerCourseChapter(@RequestBody CustomerChapterRequest request) {
         Optional<CustomerCourse> optCustomerCourse = customerCourseRepository.findById(request.getCustomerCourseId());
         Optional<Chapter> optChapter = chapterRepository.findById(request.getChapterId());
-        if(optCustomerCourse.isPresent() && optChapter.isPresent()) {
+        if (optCustomerCourse.isPresent() && optChapter.isPresent()) {
             CustomerCourse customerCourse = optCustomerCourse.get();
             Chapter chapter = optChapter.get();
             CustomerCourseChapter newChapterLink = CustomerCourseChapter.builder()
@@ -426,7 +434,7 @@ public class AcademyService {
                     .chapter(chapter)
                     .status(request.getStatus())
                     .build();
-           newChapterLink = customerCourseChapterRepository.save(newChapterLink);
+            newChapterLink = customerCourseChapterRepository.save(newChapterLink);
             CustomerChapterResponse response = CustomerChapterResponse.builder()
                     .id(newChapterLink.getId())
                     .customerCourseId(customerCourse.getId())
@@ -437,9 +445,31 @@ public class AcademyService {
         }
         return Optional.empty();
     }
-    public List<CourseResponse> getCoursesNotCompleted(){
+
+    public List<CourseResponse> getCoursesNotCompleted() {
         List<Long> listCourse = customerCourseRepository.findDistinctCourse_Id();
         List<Course> coursesNotIn = courseRepository.findByIdNotIn(listCourse);
-        return  coursesNotIn.stream().map(course2CourseResponseDTO::apply).toList();
+        return coursesNotIn.stream().map(course2CourseResponseDTO::apply).toList();
     }
+
+    public CourseNewResponse createCourse(@RequestBody CourseNewRequest newRequest) {
+        Course newCourse = courseNewRequetDTO2Course.apply(newRequest);
+        Course course = courseRepository.save(newCourse);
+        return course2CourseNewResponse.apply(course);
+    }
+    @Transactional
+    public void addCategoryToCourse(CourseAddCategoryRequest courseCategoryRequest) {
+        Optional<Course> course = courseRepository.findById(courseCategoryRequest.getCourseId());
+        Optional<Category> category = categoryRepository.findById(courseCategoryRequest.getCategoryId());
+        CourseCategory courseCategory =  CourseCategory.builder()
+                .categoryId(category.get().getId())
+                .course(course.get())
+                .priority(courseCategoryRequest.getPriority())
+                .build();
+        courseCategoryRepository.save(courseCategory);
+
+    }
+
+
+
 }

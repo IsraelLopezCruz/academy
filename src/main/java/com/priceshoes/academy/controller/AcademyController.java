@@ -1,9 +1,6 @@
 package com.priceshoes.academy.controller;
 
-import com.priceshoes.academy.controller.request.CourseDescriptionRequest;
-import com.priceshoes.academy.controller.request.CourseStatusRequest;
-import com.priceshoes.academy.controller.request.CustomerChapterRequest;
-import com.priceshoes.academy.controller.request.CustomerCourseRequest;
+import com.priceshoes.academy.controller.request.*;
 import com.priceshoes.academy.domain.Course;
 import com.priceshoes.academy.service.AcademyService;
 import com.priceshoes.academy.service.dto.*;
@@ -105,5 +102,14 @@ public class AcademyController {
     @PostMapping("/customer/course/chapter")
     public ResponseEntity<CustomerChapterResponse> saveCustomerCourseChapter(@RequestBody CustomerChapterRequest request) {
         return ResponseEntity.of(academyService.saveCustomerCourseChapter(request));
+    }
+    @PostMapping("/course")
+    public ResponseEntity<CourseNewResponse> createCourse(@RequestBody CourseNewRequest courseNewRequest) {
+        return ResponseEntity.of(Optional.ofNullable(academyService.createCourse(courseNewRequest)));
+    }
+    @PostMapping("/add/category")
+    public ResponseEntity<Void> addCourseCategory(@RequestBody CourseAddCategoryRequest courseCategoryRequest) {
+        academyService.addCategoryToCourse(courseCategoryRequest);
+        return ResponseEntity.accepted().build();
     }
 }
